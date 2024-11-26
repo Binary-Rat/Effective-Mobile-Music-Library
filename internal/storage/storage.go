@@ -1,9 +1,11 @@
 package storage
 
+import "Effective-Mobile-Music-Library/internal/models"
+
 type Interface interface {
-	Song() (string, error)
-	Text() (string, error)
-	Delete() error
+	Songs() ([]models.Song, error)
 	AddSong() error
 	ChangeSong() error
+	Delete() error
+	Text() (string, error)
 }

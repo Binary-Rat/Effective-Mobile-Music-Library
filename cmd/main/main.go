@@ -13,7 +13,7 @@ import (
 func main() {
 	logger := log.New(log.Writer(), log.Prefix(), log.Flags())
 	r := mux.NewRouter()
-	pool, err := p.NewClient(context.Background(), "")
+	pool, err := p.NewClient(context.Background())
 	if err != nil {
 		log.Fatal(err)
 	}

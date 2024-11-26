@@ -2,14 +2,21 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // Need refactor for flexibility
-func NewClient(ctx context.Context, dbURL string) (pool *pgxpool.Pool, err error) {
-	dbpool, err := pgxpool.New(context.Background(), dbURL)
+func NewClient(ctx context.Context) (pool *pgxpool.Pool, err error) {
+	connectionString, exists := os.LookupEnv("DB_URL")
+	if !exists {
+		return nil, errors.New("environment variable DB_URL is not set")
+	}
+
+	dbpool, err := pgxpool.New(ctx, connectionString)
 	if err != nil {
 		return nil, err
 	}

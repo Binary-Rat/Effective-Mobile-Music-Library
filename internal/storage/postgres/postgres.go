@@ -1,6 +1,8 @@
 package postgres
 
 import (
+	"Effective-Mobile-Music-Library/internal/models"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -13,9 +15,9 @@ func New(db *pgxpool.Pool) *Storage {
 		db: db,
 	}
 }
-func (s *Storage) Song() (string, error) {
+func (s *Storage) Songs() ([]models.Song, error) {
 	// implement logic here
-	return "", nil
+	return nil, nil
 }
 
 func (s *Storage) Text() (string, error) {

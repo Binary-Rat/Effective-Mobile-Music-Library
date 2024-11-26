@@ -3,6 +3,7 @@ package api
 import (
 	"Effective-Mobile-Music-Library/internal/storage"
 	"log"
+	"net/http"
 
 	"github.com/gorilla/mux"
 )
@@ -13,14 +14,15 @@ type api struct {
 	storage storage.Interface
 }
 
-func New(r *mux.Router, l *log.Logger, storage storage.Interface) *api {
+func New(router *mux.Router, logger *log.Logger, storage storage.Interface) *api {
 	return &api{
-		r:       r,
-		l:       l,
+		r:       router,
+		l:       logger,
 		storage: storage,
 	}
 }
 
-func (r *api) Start() error {
-	return nil
+func (a *api) Start() error {
+	a.registerHandlers()
+	return http.ListenAndServe(":8080", a.r)
 }

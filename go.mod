@@ -6,6 +6,7 @@ require github.com/jackc/pgx/v4 v4.18.3
 
 require (
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
+	github.com/joho/godotenv v1.5.1 // indirect
 	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/sys v0.25.0 // indirect
 )
