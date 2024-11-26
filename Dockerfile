@@ -14,8 +14,9 @@ FROM alpine:3.7
 WORKDIR /app
 
 COPY --from=build-stage /app/app /app
-COPY --from=build-stage /app/config.env /app
+COPY --from=build-stage /app/.env /app
+COPY --from=build-stage /app/migrations /app/migrations
 
-EXPOSE 8080
+EXPOSE 8000
 
 CMD ["./app"]

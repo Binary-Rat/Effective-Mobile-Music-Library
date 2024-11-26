@@ -1,6 +1,9 @@
 package api
 
-import "net/http"
+import (
+	"encoding/json"
+	"net/http"
+)
 
 const (
 	musicEnpoint = "/music"
@@ -17,7 +20,18 @@ func (api *api) registerHandlers() {
 }
 
 func (api *api) Songs(w http.ResponseWriter, r *http.Request) {
-	// implement logic here
+	songs, err := api.storage.Songs()
+	if err != nil {
+		api.l.Println(err)
+	}
+
+	body, err := json.Marshal(songs)
+	if err != nil {
+		api.l.Println(err)
+	}
+
+	//TODO: Make function to create response
+	w.Write(body)
 }
 
 func (api *api) DeleteSong(w http.ResponseWriter, r *http.Request) {
