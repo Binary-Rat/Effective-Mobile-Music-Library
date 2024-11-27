@@ -1,8 +1,12 @@
 package api
 
 import (
+	"Effective-Mobile-Music-Library/internal/models"
+	"context"
 	"encoding/json"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 const (
@@ -20,7 +24,9 @@ func (api *api) registerHandlers() {
 }
 
 func (api *api) Songs(w http.ResponseWriter, r *http.Request) {
-	songs, err := api.storage.Songs()
+	songFilter := parseSongFilterFromURL(r)
+
+	songs, err := api.storage.Songs(context.Background(), songFilter)
 	if err != nil {
 		api.l.Println(err)
 	}
@@ -40,4 +46,13 @@ func (api *api) DeleteSong(w http.ResponseWriter, r *http.Request) {
 
 func (api *api) SongVerse(w http.ResponseWriter, r *http.Request) {
 	// implement logic here
+}
+
+func parseSongFilterFromURL(r *http.Request) models.Song {
+	vars := mux.Vars(r)
+	return models.Song{
+		Group:   vars["group"],
+		Song:    vars["song"],
+		Details: models.SongDetail{},
+	}
 }
