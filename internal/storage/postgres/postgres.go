@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -19,7 +20,7 @@ func New(db *pgxpool.Pool) *Storage {
 		db: db,
 	}
 }
-func (s *Storage) Songs(ctx context.Context, reqSong models.SongDTO) ([]models.SongDTO, error) {
+func (s *Storage) Songs(ctx context.Context, reqSong models.SongDTO, offset uint64, limit uint64) ([]models.SongDTO, error) {
 
 	var songs []models.SongDTO
 
@@ -29,11 +30,11 @@ func (s *Storage) Songs(ctx context.Context, reqSong models.SongDTO) ([]models.S
 	}
 	defer tx.Rollback(context.Background())
 
-	sql, args, err := buildSQLWithFilter(reqSong)
+	sql, args, err := buildSQLWithFilter(reqSong, offset, limit)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(sql, args)
+
 	rows, err := tx.Query(ctx, sql, args...)
 	if err != nil {
 		return nil, fmt.Errorf("cannot execute query: %v", err)
@@ -50,12 +51,20 @@ func (s *Storage) Songs(ctx context.Context, reqSong models.SongDTO) ([]models.S
 	return songs, nil
 }
 
-func (s *Storage) Text(ctx context.Context, id int) (string, error) {
-	// implement logic here
-	return "", nil
+func (s *Storage) Verses(ctx context.Context, id int, page uint64, limit uint64) ([]string, error) {
+	var verse string
+	err := s.db.QueryRow(ctx, `SELECT verse FROM verses WHERE id = $1`, id).Scan(&verse)
+	if err != nil {
+		return nil, fmt.Errorf("cannot scan row: %v", err)
+	}
+	if page != 0 {
+		page--
+	}
+	verses := strings.Split(verse, "\n")[page*limit : limit*(page+1)]
+	return verses, nil
 }
 
-func (s *Storage) Delete(ctx context.Context, id int) error {
+func (s *Storage) DeleteSong(ctx context.Context, id int) error {
 	_, err := s.db.Exec(ctx, `DELETE FROM songs WHERE id = $1`, id)
 	if err != nil {
 		return fmt.Errorf("cannot delete value: %v", err)
@@ -83,10 +92,10 @@ func (s *Storage) ChangeSong(ctx context.Context, song models.SongDTO) (*models.
 	return nil, nil
 }
 
-func buildSQLWithFilter(reqSong models.SongDTO) (string, []interface{}, error) {
+func buildSQLWithFilter(reqSong models.SongDTO, offset uint64, limit uint64) (string, []interface{}, error) {
 	c := 1
 	qb := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-	prep := qb.Select("id", "band", "song", "release_date", "lyrics").From("songs")
+	prep := qb.Select("id", "band", "song", "release_date", "lyrics").From("songs").Offset(offset).Limit(limit)
 	if reqSong.ID >= 0 {
 		prep = prep.Where(fmt.Sprintf("id = $%d", c), reqSong.ID)
 		c++

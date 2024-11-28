@@ -68,7 +68,7 @@ func (c *client) doHTTP(ctx context.Context, method string, url string, body int
 		return nil, fmt.Errorf("failed to create request: %v", err)
 	}
 
-	// req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := c.client.Do(req)
 	if err != nil {

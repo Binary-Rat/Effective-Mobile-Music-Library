@@ -18,10 +18,10 @@ func init() {
 	if err := godotenv.Load(); err != nil {
 		log.Print("No .env file found")
 	}
+
 }
 
 func main() {
-
 	logger := log.New(log.Writer(), log.Prefix(), log.Flags())
 	r := mux.NewRouter()
 	pool, err := p.NewClient(context.Background())
@@ -34,9 +34,6 @@ func main() {
 	server := api.New(r, logger, storage, songlib.New())
 
 	port := os.Getenv("PORT")
-	if port == "" {
-		port = ":8080"
-	}
 
 	logger.Printf("Server is running on port %s", port)
 	log.Fatal(server.Start())
