@@ -6,9 +6,9 @@ import (
 )
 
 type Interface interface {
-	Songs(context.Context, models.Song) ([]models.SongDTO, error)
+	Songs(context.Context, models.SongDTO) ([]models.SongDTO, error)
 	AddSong(ctx context.Context, song models.Song) (int, error)
-	ChangeSong() error
+	ChangeSong(ctx context.Context, song models.SongDTO) (*models.SongDTO, error)
 	Delete(ctx context.Context, id int) error
-	Text() (string, error)
+	Text(ctx context.Context, id int) (string, error)
 }

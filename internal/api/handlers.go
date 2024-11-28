@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 )
 
 const (
@@ -19,11 +20,11 @@ func (api *api) registerHandlers() {
 	//Create Song
 	api.r.HandleFunc(musicEnpoint, api.AddSong).Methods(http.MethodPost)
 	//Delete song
-	api.r.HandleFunc(musicEnpoint, api.DeleteSong).Methods(http.MethodDelete).
-		Queries("group", "{group}", "song", "{song}")
+	api.r.HandleFunc(musicEnpoint, api.DeleteSong).Methods(http.MethodDelete)
 	//Get Verses of song
-	api.r.HandleFunc(verseEnpoint, api.SongVerse).Methods(http.MethodGet).
-		Queries("group", "{group}", "song", "{song}")
+	api.r.HandleFunc(verseEnpoint, api.SongVerse).Methods(http.MethodGet)
+	//Change song
+	api.r.HandleFunc(verseEnpoint, api.ChangeSong).Methods(http.MethodPatch)
 }
 
 func (api *api) Songs(w http.ResponseWriter, r *http.Request) {
@@ -71,12 +72,21 @@ func (api *api) SongVerse(w http.ResponseWriter, r *http.Request) {
 	// implement logic here
 }
 
-func parseSongFilterFromURL(r *http.Request) models.Song {
+func (api *api) ChangeSong(w http.ResponseWriter, r *http.Request) {
+	// implement logic here
+}
+
+func parseSongFilterFromURL(r *http.Request) models.SongDTO {
 	group := r.URL.Query().Get("group")
+	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+	if err != nil {
+		id = -1
+	}
 	song := r.URL.Query().Get("song")
 	_ = r.URL.Query().Get("releaseDate")
 
-	return models.Song{
+	return models.SongDTO{
+		ID:    id,
 		Group: group,
 		Song:  song,
 	}

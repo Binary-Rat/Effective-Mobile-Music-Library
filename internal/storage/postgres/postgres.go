@@ -19,7 +19,7 @@ func New(db *pgxpool.Pool) *Storage {
 		db: db,
 	}
 }
-func (s *Storage) Songs(ctx context.Context, reqSong models.Song) ([]models.SongDTO, error) {
+func (s *Storage) Songs(ctx context.Context, reqSong models.SongDTO) ([]models.SongDTO, error) {
 
 	var songs []models.SongDTO
 
@@ -50,7 +50,7 @@ func (s *Storage) Songs(ctx context.Context, reqSong models.Song) ([]models.Song
 	return songs, nil
 }
 
-func (s *Storage) Text() (string, error) {
+func (s *Storage) Text(ctx context.Context, id int) (string, error) {
 	// implement logic here
 	return "", nil
 }
@@ -78,15 +78,19 @@ func (s *Storage) AddSong(ctx context.Context, song models.Song) (int, error) {
 	return id, nil
 }
 
-func (s *Storage) ChangeSong() error {
-	// implement logic here
-	return nil
+func (s *Storage) ChangeSong(ctx context.Context, song models.SongDTO) (*models.SongDTO, error) {
+
+	return nil, nil
 }
 
-func buildSQLWithFilter(reqSong models.Song) (string, []interface{}, error) {
+func buildSQLWithFilter(reqSong models.SongDTO) (string, []interface{}, error) {
 	c := 1
 	qb := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 	prep := qb.Select("id", "band", "song", "release_date", "lyrics").From("songs")
+	if reqSong.ID >= 0 {
+		prep = prep.Where(fmt.Sprintf("id = $%d", c), reqSong.ID)
+		c++
+	}
 	if reqSong.Group != "" {
 		prep = prep.Where(fmt.Sprintf("band = $%d", c), reqSong.Group)
 		c++
