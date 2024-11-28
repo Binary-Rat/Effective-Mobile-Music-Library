@@ -21,6 +21,7 @@ func init() {
 }
 
 func main() {
+
 	logger := log.New(log.Writer(), log.Prefix(), log.Flags())
 	r := mux.NewRouter()
 	pool, err := p.NewClient(context.Background())
