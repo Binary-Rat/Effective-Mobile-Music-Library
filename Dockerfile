@@ -17,6 +17,6 @@ COPY --from=build-stage /app/app /app
 COPY --from=build-stage /app/.env /app
 COPY --from=build-stage /app/migrations /app/migrations
 
-EXPOSE 8000
+EXPOSE 8080
 
 CMD ["./app"]

@@ -9,7 +9,15 @@ import (
 	"log"
 
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 )
+
+func init() {
+	// loads values from .env into the system
+	if err := godotenv.Load(); err != nil {
+		log.Print("No .env file found")
+	}
+}
 
 func main() {
 	logger := log.New(log.Writer(), log.Prefix(), log.Flags())
@@ -23,5 +31,6 @@ func main() {
 
 	server := api.New(r, logger, storage, songlib.New())
 
+	logger.Println("Server is running on port 8080")
 	log.Fatal(server.Start())
 }

@@ -33,7 +33,7 @@ func (s *Storage) Songs(ctx context.Context, reqSong models.Song) ([]models.Song
 	if err != nil {
 		return nil, err
 	}
-
+	fmt.Println(sql, args)
 	rows, err := tx.Query(ctx, sql, args...)
 	if err != nil {
 		return nil, fmt.Errorf("cannot execute query: %v", err)
@@ -81,16 +81,16 @@ func (s *Storage) ChangeSong() error {
 }
 
 func buildSQLWithFilter(reqSong models.Song) (string, []interface{}, error) {
+	c := 1
 	qb := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 	prep := qb.Select("id", "band", "song", "release_date", "lyrics").From("songs")
 	if reqSong.Group != "" {
-		prep = prep.Where("band = $1", reqSong.Group)
+		prep = prep.Where(fmt.Sprintf("band = $%d", c), reqSong.Group)
+		c++
 	}
 	if reqSong.Song != "" {
-		prep = prep.Where("song = $2", reqSong.Song)
-	}
-	if reqSong.Details.ReleaseDate.GoString() != "" {
-		prep = prep.Where("release_date = $3", reqSong.Details.ReleaseDate)
+		prep = prep.Where(fmt.Sprintf("song = $%d", c), reqSong.Song)
+		c++
 	}
 
 	sql, args, err := prep.ToSql()

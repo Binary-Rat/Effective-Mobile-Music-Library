@@ -6,8 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-
-	"github.com/gorilla/mux"
 )
 
 const (
@@ -17,8 +15,7 @@ const (
 
 func (api *api) registerHandlers() {
 	//Get songs wtih filter
-	api.r.HandleFunc(musicEnpoint, api.Songs).Methods(http.MethodGet).
-		Queries("group", "{group}", "song", "{song}", "release", "{release}")
+	api.r.HandleFunc("/", api.Songs).Methods(http.MethodGet)
 	//Create Song
 	api.r.HandleFunc(musicEnpoint, api.AddSong).Methods(http.MethodPost)
 	//Delete song
@@ -30,6 +27,7 @@ func (api *api) registerHandlers() {
 }
 
 func (api *api) Songs(w http.ResponseWriter, r *http.Request) {
+	api.l.Println("Geting songs...")
 	songFilter := parseSongFilterFromURL(r)
 
 	songs, err := api.storage.Songs(context.Background(), songFilter)
@@ -72,9 +70,13 @@ func (api *api) SongVerse(w http.ResponseWriter, r *http.Request) {
 }
 
 func parseSongFilterFromURL(r *http.Request) models.Song {
-	vars := mux.Vars(r)
+	group := r.URL.Query().Get("group")
+	song := r.URL.Query().Get("song")
+	_ = r.URL.Query().Get("releaseDate")
+
 	return models.Song{
-		Group: vars["group"],
-		Song:  vars["song"],
+		Group: group,
+		Song:  song,
 	}
+
 }
