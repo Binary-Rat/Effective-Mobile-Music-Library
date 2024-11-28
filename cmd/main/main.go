@@ -7,6 +7,7 @@ import (
 	"Effective-Mobile-Music-Library/pkg/sources/songlib"
 	"context"
 	"log"
+	"os"
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
@@ -31,6 +32,11 @@ func main() {
 
 	server := api.New(r, logger, storage, songlib.New())
 
-	logger.Println("Server is running on port 8080")
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = ":8080"
+	}
+
+	logger.Printf("Server is running on port %s", port)
 	log.Fatal(server.Start())
 }

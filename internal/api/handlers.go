@@ -15,7 +15,7 @@ const (
 
 func (api *api) registerHandlers() {
 	//Get songs wtih filter
-	api.r.HandleFunc("/", api.Songs).Methods(http.MethodGet)
+	api.r.HandleFunc(musicEnpoint, api.Songs).Methods(http.MethodGet)
 	//Create Song
 	api.r.HandleFunc(musicEnpoint, api.AddSong).Methods(http.MethodPost)
 	//Delete song
@@ -51,8 +51,10 @@ func (api *api) AddSong(w http.ResponseWriter, r *http.Request) {
 		api.l.Println(err)
 	}
 
-	api.source.SongWithDetails(context.Background(), &song)
-
+	err = api.source.SongWithDetails(context.Background(), &song)
+	if err != nil {
+		api.l.Println(err)
+	}
 	id, err := api.storage.AddSong(context.Background(), song)
 	if err != nil {
 		api.l.Println(err)

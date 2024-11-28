@@ -55,8 +55,11 @@ func (s *Storage) Text() (string, error) {
 	return "", nil
 }
 
-func (s *Storage) Delete() error {
-	// implement logic here
+func (s *Storage) Delete(ctx context.Context, id int) error {
+	_, err := s.db.Exec(ctx, `DELETE FROM songs WHERE id = $1`, id)
+	if err != nil {
+		return fmt.Errorf("cannot delete value: %v", err)
+	}
 	return nil
 }
 

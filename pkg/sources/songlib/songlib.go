@@ -9,12 +9,20 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 
 	"errors"
 )
 
+// For tests
+//
+//go:generate mockgen -source=songlib.go -destination=mocks/songlib.go
+type HTTPClient interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
 type client struct {
-	client *http.Client
+	client HTTPClient
 }
 
 func New() *client {
@@ -31,7 +39,9 @@ func (c *client) SongWithDetails(ctx context.Context, song *models.Song) error {
 		"song":  song.Song,
 	}
 
-	body, err := c.doHTTP(ctx, "/info", query, nil)
+	url := configureURL(host, query)
+
+	body, err := c.doHTTP(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get song detail: %v", err)
 	}
@@ -45,21 +55,20 @@ func (c *client) SongWithDetails(ctx context.Context, song *models.Song) error {
 	return nil
 }
 
-var host = "https://localhost:8080"
+var host = os.Getenv("SOURCE_HOST")
 
-func (c *client) doHTTP(ctx context.Context, method string, query map[string]string, body interface{}) ([]byte, error) {
+func (c *client) doHTTP(ctx context.Context, method string, url string, body interface{}) ([]byte, error) {
 	b, err := json.Marshal(body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal body: %v", err)
 	}
-	url := configureURL(query)
 
 	req, err := http.NewRequestWithContext(ctx, method, url, bytes.NewBuffer(b))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %v", err)
 	}
 
-	req.Header.Set("Content-Type", "application/json")
+	// req.Header.Set("Content-Type", "application/json")
 
 	resp, err := c.client.Do(req)
 	if err != nil {
@@ -81,11 +90,13 @@ func (c *client) doHTTP(ctx context.Context, method string, query map[string]str
 	return respB, nil
 }
 
-func configureURL(query map[string]string) string {
-	u := url.URL{}
-	u.Path = host
+func configureURL(host string, query map[string]string) string {
+	u, err := url.Parse(host)
+	if err != nil {
+		return ""
+	}
 	for k, v := range query {
-		u.Query().Add(k, v)
+		(*u).Query().Add(k, v)
 	}
 
 	return u.String()

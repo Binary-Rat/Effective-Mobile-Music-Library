@@ -5,6 +5,7 @@ import (
 	"Effective-Mobile-Music-Library/pkg/sources"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
 )
@@ -27,5 +28,5 @@ func New(router *mux.Router, logger *log.Logger, storage storage.Interface, sour
 
 func (a *api) Start() error {
 	a.registerHandlers()
-	return http.ListenAndServe(":8080", a.r)
+	return http.ListenAndServe(os.Getenv("PORT"), a.r)
 }
