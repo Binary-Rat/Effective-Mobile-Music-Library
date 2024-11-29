@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -22,7 +23,7 @@ func Test_client_SongWithDetails(t *testing.T) {
 	}
 
 	details := &models.SongDetails{
-		ReleaseDate: "",
+		ReleaseDate: time.Now(),
 		Lyrics:      "lyrics",
 		Link:        "link",
 	}

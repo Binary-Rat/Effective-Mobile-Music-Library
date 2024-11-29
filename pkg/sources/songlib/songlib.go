@@ -11,6 +11,8 @@ import (
 	"net/url"
 	"os"
 
+	log "github.com/sirupsen/logrus"
+
 	"errors"
 )
 
@@ -34,6 +36,7 @@ func New() *client {
 func (c *client) SongWithDetails(ctx context.Context, song *models.Song) error {
 	var sd models.SongDetails
 
+	var host = os.Getenv("SOURCE_HOST")
 	query := map[string]string{
 		"group": song.Group,
 		"song":  song.Song,
@@ -55,9 +58,8 @@ func (c *client) SongWithDetails(ctx context.Context, song *models.Song) error {
 	return nil
 }
 
-var host = os.Getenv("SOURCE_HOST")
-
 func (c *client) doHTTP(ctx context.Context, method string, url string, body interface{}) ([]byte, error) {
+	log.Infof("HTTP request: %s %s", method, url)
 	b, err := json.Marshal(body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal body: %v", err)

@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 type Song struct {
 	Group   string      `json:"group"`
 	Song    string      `json:"song"`
@@ -7,9 +9,9 @@ type Song struct {
 }
 
 type SongDetails struct {
-	ReleaseDate string `json:"releaseDate"`
-	Lyrics      string `json:"text"`
-	Link        string `json:"link"`
+	ReleaseDate time.Time `json:"releaseDate"`
+	Lyrics      string    `json:"text"`
+	Link        string    `json:"link"`
 }
 
 type Verse string

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"time"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/stretchr/testify/assert"
@@ -46,8 +47,8 @@ func TestSongs(t *testing.T) {
 		Group: "Test",
 		Song:  "Test",
 		Details: models.SongDetails{
-			ReleaseDate: "",
-			Lyrics:      "Test",
+			ReleaseDate: time.Now(),
+			Lyrics:      "Test Test Test\nTest Test Test\n",
 			Link:        "http://test.com",
 		},
 	}
@@ -65,12 +66,18 @@ func TestSongs(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	verses, err := db.Verses(context.Background(), reqSong.ID, 0, 2)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	err = db.DeleteSong(context.Background(), reqSong.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	t.Log(songAdded)
+	t.Log(verses)
 
 	assert.Equal(t, songAdded[0].Song, song.Song)
 }

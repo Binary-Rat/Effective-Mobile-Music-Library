@@ -1,0 +1,201 @@
+basePath: /
+definitions:
+  models.Song:
+    properties:
+      details:
+        $ref: '#/definitions/models.SongDetails'
+      group:
+        type: string
+      song:
+        type: string
+    type: object
+  models.SongDTO:
+    properties:
+      details:
+        $ref: '#/definitions/models.SongDetails'
+      group:
+        type: string
+      id:
+        type: integer
+      song:
+        type: string
+    type: object
+  models.SongDetails:
+    properties:
+      link:
+        type: string
+      releaseDate:
+        type: string
+      text:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: This is a sample server celler server.
+  termsOfService: http://swagger.io/terms/
+  title: Swagger Example API
+  version: "1.0"
+paths:
+  /music:
+    delete:
+      description: Удаление песни по идентификатору
+      parameters:
+      - description: Идентификатор песни
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Song deleted
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Delete a song
+      tags:
+      - Songs
+    get:
+      description: Получение списка песен с возможностью фильтрации, пагинации и сортировки
+      parameters:
+      - description: Фильтр по исполнителю
+        in: query
+        name: artist
+        type: string
+      - description: Фильтр по жанру
+        in: query
+        name: genre
+        type: string
+      - default: 1
+        description: Номер страницы для пагинации
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Количество записей на странице
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Song'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get songs
+      tags:
+      - Songs
+    patch:
+      consumes:
+      - application/json
+      description: Изменение данных песни
+      parameters:
+      - description: Данные для изменения песни
+        in: body
+        name: song
+        required: true
+        schema:
+          $ref: '#/definitions/models.SongDTO'
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: 'Song changed with id: {id}'
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Change a song
+      tags:
+      - Songs
+    post:
+      consumes:
+      - application/json
+      description: Добавление новой песни
+      parameters:
+      - description: Данные новой песни
+        in: body
+        name: song
+        required: true
+        schema:
+          $ref: '#/definitions/models.Song'
+      produces:
+      - text/plain
+      responses:
+        "201":
+          description: 'Song added with id: {id}'
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Add a song
+      tags:
+      - Songs
+  /music/{id}/verse:
+    get:
+      description: Получение стихов песни по идентификатору
+      parameters:
+      - description: Идентификатор песни
+        in: path
+        name: id
+        required: true
+        type: integer
+      - default: 1
+        description: Номер страницы для пагинации
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Количество стихов на странице
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get song verses
+      tags:
+      - Songs
+swagger: "2.0"

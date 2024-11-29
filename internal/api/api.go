@@ -3,9 +3,10 @@ package api
 import (
 	"Effective-Mobile-Music-Library/internal/storage"
 	"Effective-Mobile-Music-Library/pkg/sources"
-	"log"
 	"net/http"
 	"os"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/gorilla/mux"
 )

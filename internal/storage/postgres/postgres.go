@@ -55,7 +55,7 @@ func (s *Storage) Songs(ctx context.Context, reqSong models.SongDTO, offset uint
 
 func (s *Storage) Verses(ctx context.Context, id int, page uint64, limit uint64) ([]string, error) {
 	var verse string
-	err := s.db.QueryRow(ctx, `SELECT verse FROM verses WHERE id = $1`, id).Scan(&verse)
+	err := s.db.QueryRow(ctx, `SELECT lyrics FROM songs WHERE id = $1`, id).Scan(&verse)
 	if err != nil {
 		return nil, fmt.Errorf("cannot scan row: %v", err)
 	}
@@ -95,7 +95,7 @@ func (s *Storage) ChangeSong(ctx context.Context, song *models.SongDTO) (*models
 	if song.Song != "" {
 		prep = prep.Set("song", song.Song)
 	}
-	if song.Details.ReleaseDate == "" {
+	if !song.Details.ReleaseDate.IsZero() {
 		prep = prep.Set("release_date", song.Details.ReleaseDate)
 	}
 	if song.Details.Lyrics != "" {
