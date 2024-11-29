@@ -56,7 +56,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Список песен",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -64,10 +64,16 @@ const docTemplate = `{
                             }
                         }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "400": {
+                        "description": "Ошибка запроса",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/appErr.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/appErr.Error"
                         }
                     }
                 }
@@ -78,7 +84,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "produces": [
-                    "text/plain"
+                    "application/json"
                 ],
                 "tags": [
                     "Songs"
@@ -103,15 +109,21 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Ошибка запроса",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/appErr.Error"
+                        }
+                    },
+                    "422": {
+                        "description": "Невалидные данные",
+                        "schema": {
+                            "$ref": "#/definitions/appErr.Error"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Внутренняя ошибка сервера",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/appErr.Error"
                         }
                     }
                 }
@@ -119,7 +131,7 @@ const docTemplate = `{
             "delete": {
                 "description": "Удаление песни по идентификатору",
                 "produces": [
-                    "text/plain"
+                    "application/json"
                 ],
                 "tags": [
                     "Songs"
@@ -142,15 +154,21 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Ошибка запроса",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/appErr.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Песня не найдена",
+                        "schema": {
+                            "$ref": "#/definitions/appErr.Error"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Внутренняя ошибка сервера",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/appErr.Error"
                         }
                     }
                 }
@@ -161,7 +179,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "produces": [
-                    "text/plain"
+                    "application/json"
                 ],
                 "tags": [
                     "Songs"
@@ -186,15 +204,27 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Ошибка запроса",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/appErr.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Песня не найдена",
+                        "schema": {
+                            "$ref": "#/definitions/appErr.Error"
+                        }
+                    },
+                    "422": {
+                        "description": "Невалидные данные",
+                        "schema": {
+                            "$ref": "#/definitions/appErr.Error"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Внутренняя ошибка сервера",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/appErr.Error"
                         }
                     }
                 }
@@ -207,7 +237,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Songs"
+                    "Verses"
                 ],
                 "summary": "Get song verses",
                 "parameters": [
@@ -235,7 +265,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Список стихов",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -244,15 +274,21 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Ошибка запроса",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/appErr.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Песня не найдена",
+                        "schema": {
+                            "$ref": "#/definitions/appErr.Error"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Внутренняя ошибка сервера",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/appErr.Error"
                         }
                     }
                 }
@@ -260,6 +296,14 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "appErr.Error": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
         "models.Song": {
             "type": "object",
             "properties": {

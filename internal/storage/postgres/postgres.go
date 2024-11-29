@@ -53,22 +53,22 @@ func (s *Storage) Songs(ctx context.Context, reqSong models.SongDTO, offset uint
 	return songs, nil
 }
 
-func (s *Storage) Verses(ctx context.Context, id int, page uint64, limit uint64) ([]string, error) {
+func (s *Storage) Verses(ctx context.Context, id int, offset uint64, limit uint64) ([]string, error) {
 	var verse string
 	err := s.db.QueryRow(ctx, `SELECT lyrics FROM songs WHERE id = $1`, id).Scan(&verse)
 	if err != nil {
 		return nil, fmt.Errorf("cannot scan row: %v", err)
 	}
-	if page != 0 {
-		page--
-	}
-	verses := strings.Split(verse, "\n")[page*limit : limit*(page+1)]
+	verses := strings.Split(verse, "\n")[offset : limit+offset]
 	return verses, nil
 }
 
 func (s *Storage) DeleteSong(ctx context.Context, id int) error {
-	_, err := s.db.Exec(ctx, `DELETE FROM songs WHERE id = $1`, id)
+	cmdTag, err := s.db.Exec(ctx, `DELETE FROM songs WHERE id = $1`, id)
 	if err != nil {
+		return fmt.Errorf("cannot delete value: %v", err)
+	}
+	if cmdTag.RowsAffected() == 0 {
 		return fmt.Errorf("cannot delete value: %v", err)
 	}
 	return nil

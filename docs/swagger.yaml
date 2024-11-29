@@ -1,5 +1,10 @@
 basePath: /
 definitions:
+  appErr.Error:
+    properties:
+      message:
+        type: string
+    type: object
   models.Song:
     properties:
       details:
@@ -47,20 +52,24 @@ paths:
         required: true
         type: integer
       produces:
-      - text/plain
+      - application/json
       responses:
         "200":
           description: Song deleted
           schema:
             type: string
         "400":
-          description: Bad Request
+          description: Ошибка запроса
           schema:
-            type: string
+            $ref: '#/definitions/appErr.Error'
+        "404":
+          description: Песня не найдена
+          schema:
+            $ref: '#/definitions/appErr.Error'
         "500":
-          description: Internal Server Error
+          description: Внутренняя ошибка сервера
           schema:
-            type: string
+            $ref: '#/definitions/appErr.Error'
       summary: Delete a song
       tags:
       - Songs
@@ -89,15 +98,19 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Список песен
           schema:
             items:
               $ref: '#/definitions/models.Song'
             type: array
-        "500":
-          description: Internal Server Error
+        "400":
+          description: Ошибка запроса
           schema:
-            type: string
+            $ref: '#/definitions/appErr.Error'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/appErr.Error'
       summary: Get songs
       tags:
       - Songs
@@ -113,20 +126,28 @@ paths:
         schema:
           $ref: '#/definitions/models.SongDTO'
       produces:
-      - text/plain
+      - application/json
       responses:
         "200":
           description: 'Song changed with id: {id}'
           schema:
             type: string
         "400":
-          description: Bad Request
+          description: Ошибка запроса
           schema:
-            type: string
+            $ref: '#/definitions/appErr.Error'
+        "404":
+          description: Песня не найдена
+          schema:
+            $ref: '#/definitions/appErr.Error'
+        "422":
+          description: Невалидные данные
+          schema:
+            $ref: '#/definitions/appErr.Error'
         "500":
-          description: Internal Server Error
+          description: Внутренняя ошибка сервера
           schema:
-            type: string
+            $ref: '#/definitions/appErr.Error'
       summary: Change a song
       tags:
       - Songs
@@ -142,20 +163,24 @@ paths:
         schema:
           $ref: '#/definitions/models.Song'
       produces:
-      - text/plain
+      - application/json
       responses:
         "201":
           description: 'Song added with id: {id}'
           schema:
             type: string
         "400":
-          description: Bad Request
+          description: Ошибка запроса
           schema:
-            type: string
+            $ref: '#/definitions/appErr.Error'
+        "422":
+          description: Невалидные данные
+          schema:
+            $ref: '#/definitions/appErr.Error'
         "500":
-          description: Internal Server Error
+          description: Внутренняя ошибка сервера
           schema:
-            type: string
+            $ref: '#/definitions/appErr.Error'
       summary: Add a song
       tags:
       - Songs
@@ -182,20 +207,24 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Список стихов
           schema:
             items:
               type: string
             type: array
         "400":
-          description: Bad Request
+          description: Ошибка запроса
           schema:
-            type: string
+            $ref: '#/definitions/appErr.Error'
+        "404":
+          description: Песня не найдена
+          schema:
+            $ref: '#/definitions/appErr.Error'
         "500":
-          description: Internal Server Error
+          description: Внутренняя ошибка сервера
           schema:
-            type: string
+            $ref: '#/definitions/appErr.Error'
       summary: Get song verses
       tags:
-      - Songs
+      - Verses
 swagger: "2.0"

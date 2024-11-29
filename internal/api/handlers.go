@@ -2,6 +2,8 @@ package api
 
 import (
 	"Effective-Mobile-Music-Library/internal/models"
+	"Effective-Mobile-Music-Library/pkg/middleware"
+	aErr "Effective-Mobile-Music-Library/pkg/middleware/app-err"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -21,6 +23,7 @@ const (
 )
 
 func (api *api) registerHandlers() {
+	api.r.Use(middleware.ErrorMiddleware)
 	//Get songs wtih filter
 	api.r.HandleFunc(musicEnpoint, api.Songs).Methods(http.MethodGet)
 	//Create Song
@@ -44,28 +47,28 @@ func (api *api) registerHandlers() {
 // @Produce      json
 // @Param        artist query string false "Фильтр по исполнителю"
 // @Param        genre  query string false "Фильтр по жанру"
-// @Param        page   query int    false "Номер страницы для пагинации" default(1)
+// @Param        offset   query int    false "Номер страницы для пагинации" default(1)
 // @Param        limit  query int    false "Количество записей на странице" default(10)
-// @Success      200 {array} models.Song
-// @Failure      500 {object} string "Internal Server Error"
+// @Success      200 {array} models.Song "Список песен"
+// @Failure      400 {object} appErr.Error "Ошибка запроса"
+// @Failure      500 {object} appErr.Error "Внутренняя ошибка сервера"
 // @Router       /music [get]
 func (api *api) Songs(w http.ResponseWriter, r *http.Request) {
 	api.l.Println("Geting songs...")
+	songFilter, offset, limit := parseSongFilterFromURL(r)
 
-	songFilter, page, limit := parseSongFilterFromURL(r)
-
-	songs, err := api.storage.Songs(context.Background(), songFilter, page, limit)
+	songs, err := api.storage.Songs(context.Background(), songFilter, offset, limit)
 	if err != nil {
-		panic(err)
+		panic(aErr.New(http.StatusInternalServerError, err.Error()))
 	}
 
 	body, err := json.Marshal(songs)
 	if err != nil {
-		panic(err)
+		panic(aErr.New(http.StatusInternalServerError, err.Error()))
 	}
 
 	//TODO: Make function to create response
-	w.Write(body)
+	writeRespone(w, body)
 }
 
 // AddSong
@@ -73,11 +76,12 @@ func (api *api) Songs(w http.ResponseWriter, r *http.Request) {
 // @Description  Добавление новой песни
 // @Tags         Songs
 // @Accept       json
-// @Produce      text/plain
+// @Produce      json
 // @Param        song body models.Song true "Данные новой песни"
-// @Success      201 {string} string "Song added with id: {id}"
-// @Failure      400 {object} string "Bad Request"
-// @Failure      500 {object} string "Internal Server Error"
+// @Success      201 {object} string "Song added with id: {id}"
+// @Failure      400 {object} appErr.Error "Ошибка запроса"
+// @Failure      422 {object} appErr.Error "Невалидные данные"
+// @Failure      500 {object} appErr.Error "Внутренняя ошибка сервера"
 // @Router       /music [post]
 func (api *api) AddSong(w http.ResponseWriter, r *http.Request) {
 	var song models.Song
@@ -88,67 +92,73 @@ func (api *api) AddSong(w http.ResponseWriter, r *http.Request) {
 
 	err = api.source.SongWithDetails(context.Background(), &song)
 	if err != nil {
-		panic(err)
+		panic(aErr.New(http.StatusInternalServerError, err.Error()))
 	}
 	id, err := api.storage.AddSong(context.Background(), song)
 	if err != nil {
-		panic(err)
+		panic(aErr.New(http.StatusInternalServerError, err.Error()))
 	}
 
-	w.Write([]byte(fmt.Sprintf("Song added with id: %d", id)))
+	body := []byte(fmt.Sprintf("Song added - id: %d", id))
+	writeRespone(w, body)
 }
 
 // DeleteSong
 // @Summary      Delete a song
 // @Description  Удаление песни по идентификатору
 // @Tags         Songs
-// @Produce      text/plain
+// @Produce      json
 // @Param        id query int true "Идентификатор песни"
-// @Success      200 {string} string "Song deleted"
-// @Failure      400 {object} string "Bad Request"
-// @Failure      500 {object} string "Internal Server Error"
+// @Success      200 {object} string "Song deleted"
+// @Failure      400 {object} appErr.Error "Ошибка запроса"
+// @Failure      404 {object} appErr.Error "Песня не найдена"
+// @Failure      500 {object} appErr.Error "Внутренняя ошибка сервера"
 // @Router       /music [delete]
 func (api *api) DeleteSong(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		panic(err)
+		panic(aErr.New(http.StatusBadRequest, err.Error()))
 	}
 	err = api.storage.DeleteSong(context.Background(), id)
 	if err != nil {
-		panic(err)
+		panic(aErr.New(http.StatusInternalServerError, err.Error()))
 	}
+
+	body := []byte(fmt.Sprintf("Song with id %d deleted", id))
+	writeRespone(w, body)
 }
 
 // SongVerse
 // @Summary      Get song verses
 // @Description  Получение стихов песни по идентификатору
-// @Tags         Songs
+// @Tags         Verses
 // @Produce      json
 // @Param        id    path int true  "Идентификатор песни"
-// @Param        page  query int false "Номер страницы для пагинации" default(1)
+// @Param        offset  query int false "Номер страницы для пагинации" default(1)
 // @Param        limit query int false "Количество стихов на странице" default(10)
-// @Success      200 {array} models.Verse
-// @Failure      400 {object} string "Bad Request"
-// @Failure      500 {object} string "Internal Server Error"
+// @Success      200 {array} models.Verse "Список стихов"
+// @Failure      400 {object} appErr.Error "Ошибка запроса"
+// @Failure      404 {object} appErr.Error "Песня не найдена"
+// @Failure      500 {object} appErr.Error "Внутренняя ошибка сервера"
 // @Router       /music/{id}/verse [get]
 func (api *api) SongVerse(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	id, err := strconv.Atoi(vars["page"])
+	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		panic(err)
+		panic(aErr.New(http.StatusBadRequest, err.Error()))
 	}
-	offset, limit := parsePageLimit(r)
+	offset, limit := parseOffsetLimit(r)
 	verse, err := api.storage.Verses(context.Background(), id, offset, limit)
 	if err != nil {
-		panic(err)
+		panic(aErr.New(http.StatusInternalServerError, err.Error()))
 	}
 	body, err := json.Marshal(verse)
 	if err != nil {
-		panic(err)
+		panic(aErr.New(http.StatusInternalServerError, err.Error()))
 	}
 
-	w.Write(body)
+	writeRespone(w, body)
 }
 
 // ChangeSong
@@ -156,28 +166,32 @@ func (api *api) SongVerse(w http.ResponseWriter, r *http.Request) {
 // @Description  Изменение данных песни
 // @Tags         Songs
 // @Accept       json
-// @Produce      text/plain
+// @Produce      json
 // @Param        song body models.SongDTO true "Данные для изменения песни"
-// @Success      200 {string} string "Song changed with id: {id}"
-// @Failure      400 {object} string "Bad Request"
-// @Failure      500 {object} string "Internal Server Error"
+// @Success      200 {object} string "Song changed with id: {id}"
+// @Failure      400 {object} appErr.Error "Ошибка запроса"
+// @Failure      404 {object} appErr.Error "Песня не найдена"
+// @Failure      422 {object} appErr.Error "Невалидные данные"
+// @Failure      500 {object} appErr.Error "Внутренняя ошибка сервера"
 // @Router       /music [patch]
 func (api *api) ChangeSong(w http.ResponseWriter, r *http.Request) {
 	var song models.SongDTO
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		panic(err)
+		panic(aErr.New(http.StatusBadRequest, err.Error()))
 	}
 	err = json.Unmarshal(body, &song)
 	if err != nil {
-		panic(err)
+		panic(aErr.New(http.StatusBadRequest, err.Error()))
 	}
 	newSong, err := api.storage.ChangeSong(context.Background(), &song)
 	if err != nil {
-		panic(err)
+		panic(aErr.New(http.StatusInternalServerError, err.Error()))
 	}
 
-	w.Write([]byte(fmt.Sprintf("Song changed with id: %d", newSong.ID)))
+	body = []byte(fmt.Sprintf("Song changed with id: %d", newSong.ID))
+
+	writeRespone(w, body)
 }
 
 func parseSongFilterFromURL(r *http.Request) (models.SongDTO, uint64, uint64) {
@@ -188,23 +202,28 @@ func parseSongFilterFromURL(r *http.Request) (models.SongDTO, uint64, uint64) {
 	}
 	song := r.URL.Query().Get("song")
 
-	page, limit := parsePageLimit(r)
+	offset, limit := parseOffsetLimit(r)
 
 	return models.SongDTO{
 		ID:    id,
 		Group: group,
 		Song:  song,
-	}, page, limit
+	}, offset, limit
 }
 
-func parsePageLimit(r *http.Request) (uint64, uint64) {
-	page, err := strconv.ParseUint(r.URL.Query().Get("offset"), 10, 64)
+func parseOffsetLimit(r *http.Request) (uint64, uint64) {
+	offset, err := strconv.ParseUint(r.URL.Query().Get("offset"), 10, 64)
 	if err != nil {
-		page = 0
+		offset = 0
 	}
 	limit, err := strconv.ParseUint(r.URL.Query().Get("limit"), 10, 64)
 	if err != nil {
 		limit = 10
 	}
-	return page, limit
+	return offset, limit
+}
+
+func writeRespone(w http.ResponseWriter, body []byte) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(body)
 }
