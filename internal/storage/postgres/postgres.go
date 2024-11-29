@@ -46,7 +46,9 @@ func (s *Storage) Songs(ctx context.Context, reqSong models.SongDTO, offset uint
 		if err := rows.Scan(&song.ID, &song.Group, &song.Song, &song.Details.ReleaseDate, &song.Details.Lyrics); err != nil {
 			log.Printf("cannot scan row: %v\\n", err)
 		}
+		songs = append(songs, song)
 	}
+	tx.Commit(ctx)
 
 	return songs, nil
 }
@@ -74,22 +76,42 @@ func (s *Storage) DeleteSong(ctx context.Context, id int) error {
 
 func (s *Storage) AddSong(ctx context.Context, song models.Song) (int, error) {
 	var id int
-	row, err := s.db.Query(ctx, `INSERT INTO songs (band, song, release_date, lyrics) 
-		VALUES ($1, $2, $3, $4) RETURNING id`,
-		song.Group, song.Song, song.Details.ReleaseDate, song.Details.Lyrics)
-
+	err := s.db.QueryRow(ctx, `INSERT INTO songs (band, song, release_date, lyrics, link) 
+		VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+		song.Group, song.Song, song.Details.ReleaseDate, song.Details.Lyrics, song.Details.Link).Scan(&id)
 	if err != nil {
 		return 0, fmt.Errorf("cannot insert value: %v", err)
 	}
-	defer row.Close()
 
-	row.Scan(&id)
 	return id, nil
 }
 
-func (s *Storage) ChangeSong(ctx context.Context, song models.SongDTO) (*models.SongDTO, error) {
+func (s *Storage) ChangeSong(ctx context.Context, song *models.SongDTO) (*models.SongDTO, error) {
+	qb := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+	prep := qb.Update("songs")
+	if song.Group != "" {
+		prep = prep.Set("band", song.Group)
+	}
+	if song.Song != "" {
+		prep = prep.Set("song", song.Song)
+	}
+	if song.Details.ReleaseDate == "" {
+		prep = prep.Set("release_date", song.Details.ReleaseDate)
+	}
+	if song.Details.Lyrics != "" {
+		prep = prep.Set("lyrics", song.Details.Lyrics)
+	}
+	prep = prep.Where("id = $1", song.ID).Suffix("RETURNING id, band, song, release_date, lyrics")
+	sql, args, err := prep.ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("cannot build query: %v", err)
+	}
 
-	return nil, nil
+	err = s.db.QueryRow(ctx, sql, args...).Scan(&song.ID, &song.Group, &song.Song, &song.Details.ReleaseDate, &song.Details.Lyrics)
+	if err != nil {
+		return nil, fmt.Errorf("cannot update value: %v", err)
+	}
+	return song, nil
 }
 
 func buildSQLWithFilter(reqSong models.SongDTO, offset uint64, limit uint64) (string, []interface{}, error) {

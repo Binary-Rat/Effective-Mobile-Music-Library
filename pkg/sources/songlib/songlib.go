@@ -32,7 +32,7 @@ func New() *client {
 }
 
 func (c *client) SongWithDetails(ctx context.Context, song *models.Song) error {
-	var sd models.SongDetail
+	var sd models.SongDetails
 
 	query := map[string]string{
 		"group": song.Group,

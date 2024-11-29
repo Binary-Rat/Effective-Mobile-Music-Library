@@ -111,7 +111,7 @@ func (api *api) ChangeSong(w http.ResponseWriter, r *http.Request) {
 		api.l.Println(err)
 		return
 	}
-	newSong, err := api.storage.ChangeSong(context.Background(), song)
+	newSong, err := api.storage.ChangeSong(context.Background(), &song)
 	if err != nil {
 		api.l.Println(err)
 	}

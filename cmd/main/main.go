@@ -24,7 +24,12 @@ func init() {
 func main() {
 	logger := log.New(log.Writer(), log.Prefix(), log.Flags())
 	r := mux.NewRouter()
-	pool, err := p.NewClient(context.Background())
+
+	connectionString, exists := os.LookupEnv("DB_URL")
+	if !exists {
+		log.Fatal("environment variable DB_URL is not set")
+	}
+	pool, err := p.NewClient(context.Background(), connectionString)
 	if err != nil {
 		log.Fatal(err)
 	}

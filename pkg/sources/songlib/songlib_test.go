@@ -9,7 +9,6 @@ import (
 	"io"
 	"net/http"
 	"testing"
-	"time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -22,8 +21,8 @@ func Test_client_SongWithDetails(t *testing.T) {
 		client: hc,
 	}
 
-	details := &models.SongDetail{
-		ReleaseDate: time.Now(),
+	details := &models.SongDetails{
+		ReleaseDate: "",
 		Lyrics:      "lyrics",
 		Link:        "link",
 	}
@@ -44,7 +43,7 @@ func Test_client_SongWithDetails(t *testing.T) {
 
 	client.SongWithDetails(ctx, song)
 
-	assert.Equal(t, details.ReleaseDate.GoString(), song.Details.ReleaseDate.GoString())
+	assert.Equal(t, details.ReleaseDate, song.Details.ReleaseDate)
 
 	assert.Equal(t, details.Link, song.Details.Link)
 

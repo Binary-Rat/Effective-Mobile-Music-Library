@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS songs (
     song VARCHAR(255) NOT NULL,
     "text" text NOT NULL,
     link VARCHAR(255) NOT NULL,
-    release_date VARCHAR(255) NOT NULL
+    release_date TIMESTAMPTZ NOT NULL
 );
 -- +goose StatementEnd
 
