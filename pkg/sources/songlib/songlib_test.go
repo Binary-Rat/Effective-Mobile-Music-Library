@@ -44,7 +44,9 @@ func Test_client_SongWithDetails(t *testing.T) {
 
 	client.SongWithDetails(ctx, song)
 
-	assert.Equal(t, details.ReleaseDate, song.Details.ReleaseDate)
+	if !song.Details.ReleaseDate.Equal(details.ReleaseDate) {
+		t.Errorf("got %v, want %v", song.Details.ReleaseDate, details.ReleaseDate)
+	}
 
 	assert.Equal(t, details.Link, song.Details.Link)
 
