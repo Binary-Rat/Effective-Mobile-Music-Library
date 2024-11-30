@@ -4,20 +4,25 @@ import (
 	"Effective-Mobile-Music-Library/internal/models"
 	"context"
 	"fmt"
-	"log"
+	"time"
+
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/jackc/pgx"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/sirupsen/logrus"
 )
 
 type Storage struct {
-	db *pgxpool.Pool
+	db  *pgxpool.Pool
+	log *logrus.Logger
 }
 
-func New(db *pgxpool.Pool) *Storage {
+func New(db *pgxpool.Pool, l *logrus.Logger) *Storage {
 	return &Storage{
-		db: db,
+		db:  db,
+		log: l,
 	}
 }
 func (s *Storage) Songs(ctx context.Context, reqSong models.SongDTO, offset uint64, limit uint64) ([]models.SongDTO, error) {
@@ -43,9 +48,12 @@ func (s *Storage) Songs(ctx context.Context, reqSong models.SongDTO, offset uint
 
 	for rows.Next() {
 		var song models.SongDTO
-		if err := rows.Scan(&song.ID, &song.Group, &song.Song, &song.Details.ReleaseDate, &song.Details.Lyrics); err != nil {
-			log.Printf("cannot scan row: %v\\n", err)
+		var t time.Time
+		//ID band song release_date link lyrics
+		if err := rows.Scan(&song.ID, &song.Group, &song.Song, &t, &song.Details.Link, &song.Details.Lyrics); err != nil {
+			s.log.Errorf("cannot scan row: %v\\n", err)
 		}
+		song.Details.ReleaseDate = models.CustomTime(t)
 		songs = append(songs, song)
 	}
 	tx.Commit(ctx)
@@ -57,9 +65,13 @@ func (s *Storage) Verses(ctx context.Context, id int, offset uint64, limit uint6
 	var verse string
 	err := s.db.QueryRow(ctx, `SELECT lyrics FROM songs WHERE id = $1`, id).Scan(&verse)
 	if err != nil {
+		if err.Error() == pgx.ErrNoRows.Error() {
+			return []string{}, nil
+		}
 		return nil, fmt.Errorf("cannot scan row: %v", err)
 	}
-	verses := strings.Split(verse, "\\n")
+	verses := strings.Split(verse, "\n")
+	s.log.Debug("verses: ", verses)
 	if int(offset) > len(verses) {
 		return []string{}, nil
 	}
@@ -84,7 +96,7 @@ func (s *Storage) AddSong(ctx context.Context, song models.Song) (int, error) {
 	var id int
 	err := s.db.QueryRow(ctx, `INSERT INTO songs (band, song, release_date, lyrics, link) 
 		VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-		song.Group, song.Song, song.Details.ReleaseDate, song.Details.Lyrics, song.Details.Link).Scan(&id)
+		song.Group, song.Song, time.Time(song.Details.ReleaseDate), song.Details.Lyrics, song.Details.Link).Scan(&id)
 	if err != nil {
 		return 0, fmt.Errorf("cannot insert value: %v", err)
 	}
@@ -94,36 +106,49 @@ func (s *Storage) AddSong(ctx context.Context, song models.Song) (int, error) {
 
 func (s *Storage) ChangeSong(ctx context.Context, song *models.SongDTO) (*models.SongDTO, error) {
 	qb := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+
+	//counter for fillter to put correct var in query
+	c := 1
 	prep := qb.Update("songs")
 	if song.Group != "" {
+		c++
 		prep = prep.Set("band", song.Group)
 	}
 	if song.Song != "" {
+		c++
 		prep = prep.Set("song", song.Song)
 	}
-	if !song.Details.ReleaseDate.IsZero() {
-		prep = prep.Set("release_date", song.Details.ReleaseDate)
+	if !time.Time(song.Details.ReleaseDate).IsZero() {
+		c++
+		prep = prep.Set("release_date", time.Time(song.Details.ReleaseDate))
 	}
 	if song.Details.Lyrics != "" {
+		c++
 		prep = prep.Set("lyrics", song.Details.Lyrics)
 	}
-	prep = prep.Where("id = $1", song.ID).Suffix("RETURNING id, band, song, release_date, lyrics")
+	if song.Details.Link != "" {
+		c++
+		prep = prep.Set("link", song.Details.Lyrics)
+	}
+	prep = prep.Where(fmt.Sprintf("id=$%d", c), song.ID).Suffix("RETURNING id, band, song, release_date, link, lyrics")
 	sql, args, err := prep.ToSql()
 	if err != nil {
 		return nil, fmt.Errorf("cannot build query: %v", err)
 	}
-
-	err = s.db.QueryRow(ctx, sql, args...).Scan(&song.ID, &song.Group, &song.Song, &song.Details.ReleaseDate, &song.Details.Lyrics)
+	var t time.Time
+	s.log.Debugf("sql:%s args:%s", sql, args)
+	err = s.db.QueryRow(ctx, sql, args...).Scan(&song.ID, &song.Group, &song.Song, &t, &song.Details.Link, &song.Details.Lyrics)
 	if err != nil {
 		return nil, fmt.Errorf("cannot update value: %v", err)
 	}
+	song.Details.ReleaseDate = models.CustomTime(t)
 	return song, nil
 }
 
 func buildSQLWithFilter(reqSong models.SongDTO, offset uint64, limit uint64) (string, []interface{}, error) {
 	c := 1
 	qb := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-	prep := qb.Select("id", "band", "song", "release_date", "lyrics").From("songs").Offset(offset).Limit(limit)
+	prep := qb.Select("id", "band", "song", "release_date", "link", "lyrics").From("songs").Offset(offset).Limit(limit)
 	if reqSong.ID >= 0 {
 		prep = prep.Where(fmt.Sprintf("id = $%d", c), reqSong.ID)
 		c++

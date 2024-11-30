@@ -7,10 +7,12 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -21,7 +23,7 @@ var db *postgres.Storage
 func TestMain(m *testing.M) {
 	pool, _ := p.NewClient(context.Background(), dbTestURL)
 
-	db = postgres.New(pool)
+	db = postgres.New(pool, logrus.New())
 	exitCode := m.Run()
 	os.Exit(exitCode)
 }
@@ -47,7 +49,7 @@ func TestSongs(t *testing.T) {
 		Group: "Test",
 		Song:  "Test",
 		Details: models.SongDetails{
-			ReleaseDate: time.Now(),
+			ReleaseDate: models.CustomTime(time.Now()),
 			Lyrics:      "Test Test Test\\nTest Test Test\\n",
 			Link:        "http://test.com",
 		},
@@ -80,4 +82,5 @@ func TestSongs(t *testing.T) {
 	t.Log("verses: ", verses[0])
 
 	assert.Equal(t, songAdded[0].Song, song.Song)
+	assert.Equal(t, verses[0], strings.Split(song.Details.Lyrics, "\n")[0])
 }

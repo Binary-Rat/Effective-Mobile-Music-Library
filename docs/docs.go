@@ -28,28 +28,38 @@ const docTemplate = `{
                 "summary": "Get songs",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Фильтр по исполнителю",
-                        "name": "artist",
+                        "type": "integer",
+                        "description": "Фильтр по идентификатору",
+                        "name": "id",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Фильтр по жанру",
-                        "name": "genre",
+                        "example": "Nirvana",
+                        "description": "Фильтр по группе",
+                        "name": "group",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "Lithium",
+                        "description": "Фильтр по названию песни",
+                        "name": "song",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "default": 1,
-                        "description": "Номер страницы для пагинации",
-                        "name": "page",
+                        "default": 0,
+                        "example": 0,
+                        "description": "Номер отступа для пагинации",
+                        "name": "offset",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "default": 10,
-                        "description": "Количество записей на странице",
+                        "example": 10,
+                        "description": "Максимальное количество записей",
                         "name": "limit",
                         "in": "query"
                     }
@@ -140,6 +150,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "example": 1,
                         "description": "Идентификатор песни",
                         "name": "id",
                         "in": "query",
@@ -174,7 +185,7 @@ const docTemplate = `{
                 }
             },
             "patch": {
-                "description": "Изменение данных песни",
+                "description": "Изменение данных песни. Песня определяется по переданному в структуре id.",
                 "consumes": [
                     "application/json"
                 ],
@@ -232,7 +243,7 @@ const docTemplate = `{
         },
         "/music/{id}/verse": {
             "get": {
-                "description": "Получение стихов песни по идентификатору",
+                "description": "Получение куплетов песни по идентификатору",
                 "produces": [
                     "application/json"
                 ],
@@ -250,22 +261,22 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "default": 1,
-                        "description": "Номер страницы для пагинации",
-                        "name": "page",
+                        "default": 0,
+                        "description": "Отступ для пагинации",
+                        "name": "offset",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "default": 10,
-                        "description": "Количество стихов на странице",
+                        "description": "Максимальное количество записей",
                         "name": "limit",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Список стихов",
+                        "description": "Список куплетов",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -311,10 +322,12 @@ const docTemplate = `{
                     "$ref": "#/definitions/models.SongDetails"
                 },
                 "group": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "group"
                 },
                 "song": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "song"
                 }
             }
         },
@@ -339,13 +352,15 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "link": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "link"
                 },
                 "releaseDate": {
                     "type": "string"
                 },
                 "text": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "lyrics"
                 }
             }
         }

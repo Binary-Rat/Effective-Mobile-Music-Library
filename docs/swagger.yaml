@@ -10,8 +10,10 @@ definitions:
       details:
         $ref: '#/definitions/models.SongDetails'
       group:
+        example: group
         type: string
       song:
+        example: song
         type: string
     type: object
   models.SongDTO:
@@ -28,10 +30,12 @@ definitions:
   models.SongDetails:
     properties:
       link:
+        example: link
         type: string
       releaseDate:
         type: string
       text:
+        example: lyrics
         type: string
     type: object
 host: localhost:8080
@@ -47,6 +51,7 @@ paths:
       description: Удаление песни по идентификатору
       parameters:
       - description: Идентификатор песни
+        example: 1
         in: query
         name: id
         required: true
@@ -76,21 +81,29 @@ paths:
     get:
       description: Получение списка песен с возможностью фильтрации, пагинации и сортировки
       parameters:
-      - description: Фильтр по исполнителю
+      - description: Фильтр по идентификатору
         in: query
-        name: artist
+        name: id
+        type: integer
+      - description: Фильтр по группе
+        example: Nirvana
+        in: query
+        name: group
         type: string
-      - description: Фильтр по жанру
+      - description: Фильтр по названию песни
+        example: Lithium
         in: query
-        name: genre
+        name: song
         type: string
-      - default: 1
-        description: Номер страницы для пагинации
+      - default: 0
+        description: Номер отступа для пагинации
+        example: 0
         in: query
-        name: page
+        name: offset
         type: integer
       - default: 10
-        description: Количество записей на странице
+        description: Максимальное количество записей
+        example: 10
         in: query
         name: limit
         type: integer
@@ -117,7 +130,8 @@ paths:
     patch:
       consumes:
       - application/json
-      description: Изменение данных песни
+      description: Изменение данных песни. Песня определяется по переданному в структуре
+        id.
       parameters:
       - description: Данные для изменения песни
         in: body
@@ -186,20 +200,20 @@ paths:
       - Songs
   /music/{id}/verse:
     get:
-      description: Получение стихов песни по идентификатору
+      description: Получение куплетов песни по идентификатору
       parameters:
       - description: Идентификатор песни
         in: path
         name: id
         required: true
         type: integer
-      - default: 1
-        description: Номер страницы для пагинации
+      - default: 0
+        description: Отступ для пагинации
         in: query
-        name: page
+        name: offset
         type: integer
       - default: 10
-        description: Количество стихов на странице
+        description: Максимальное количество записей
         in: query
         name: limit
         type: integer
@@ -207,7 +221,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: Список стихов
+          description: Список куплетов
           schema:
             items:
               type: string

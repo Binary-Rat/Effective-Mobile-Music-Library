@@ -45,10 +45,11 @@ func (api *api) registerHandlers() {
 // @Description  Получение списка песен с возможностью фильтрации, пагинации и сортировки
 // @Tags         Songs
 // @Produce      json
-// @Param        artist query string false "Фильтр по исполнителю"
-// @Param        genre  query string false "Фильтр по жанру"
-// @Param        offset   query int    false "Номер страницы для пагинации" default(1)
-// @Param        limit  query int    false "Количество записей на странице" default(10)
+// @Param        id     query int    false "Фильтр по идентификатору"
+// @Param        group  query string false "Фильтр по группе" example(Nirvana)
+// @Param        song   query string false "Фильтр по названию песни" example(Lithium)
+// @Param        offset query int    false "Номер отступа для пагинации" default(0) example(0)
+// @Param        limit  query int    false "Максимальное количество записей" default(10) example(10)
 // @Success      200 {array} models.Song "Список песен"
 // @Failure      400 {object} appErr.Error "Ошибка запроса"
 // @Failure      500 {object} appErr.Error "Внутренняя ошибка сервера"
@@ -79,7 +80,7 @@ func (api *api) Songs(w http.ResponseWriter, r *http.Request) {
 // @Tags         Songs
 // @Accept       json
 // @Produce      json
-// @Param        song body models.Song true "Данные новой песни"
+// @Param        song body models.Song true "Данные новой песни" example({"group": "Nirvana", "song": "Lithium"})
 // @Success      201 {object} string "Song added with id: {id}"
 // @Failure      400 {object} appErr.Error "Ошибка запроса"
 // @Failure      422 {object} appErr.Error "Невалидные данные"
@@ -108,43 +109,55 @@ func (api *api) AddSong(w http.ResponseWriter, r *http.Request) {
 	writeRespone(w, body)
 }
 
-// DeleteSong
-// @Summary      Delete a song
-// @Description  Удаление песни по идентификатору
+// ChangeSong
+// @Summary      Change a song
+// @Description  Изменение данных песни. Песня определяется по переданному в структуре id.
 // @Tags         Songs
+// @Accept       json
 // @Produce      json
-// @Param        id query int true "Идентификатор песни"
-// @Success      200 {object} string "Song deleted"
+// @Param song body models.SongDTO true "Данные для изменения песни" example({"id": 1, "group": "Nirvana", "song": "Lithium", "link": "https://example.com/lithium", "text": "I'm so happy, 'cause today I found my friends..."})
+// @Success      200 {object} string "Song changed with id: {id}"
 // @Failure      400 {object} appErr.Error "Ошибка запроса"
 // @Failure      404 {object} appErr.Error "Песня не найдена"
+// @Failure      422 {object} appErr.Error "Невалидные данные"
 // @Failure      500 {object} appErr.Error "Внутренняя ошибка сервера"
-// @Router       /music [delete]
-func (api *api) DeleteSong(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id, err := strconv.Atoi(vars["id"])
+// @Router       /music [patch]
+func (api *api) ChangeSong(w http.ResponseWriter, r *http.Request) {
+	var song models.SongDTO
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		api.l.Error(err)
 		panic(aErr.New(http.StatusBadRequest, err.Error()))
 	}
-	err = api.storage.DeleteSong(context.Background(), id)
+	err = json.Unmarshal(body, &song)
+	if err != nil {
+		api.l.Error(err)
+		panic(aErr.New(http.StatusBadRequest, err.Error()))
+	}
+	newSong, err := api.storage.ChangeSong(context.Background(), &song)
 	if err != nil {
 		api.l.Error(err)
 		panic(aErr.New(http.StatusInternalServerError, err.Error()))
 	}
 
-	body := []byte(fmt.Sprintf("Song with id %d deleted", id))
+	body, err = json.Marshal(fmt.Sprintf("Song changed with id: %d", newSong.ID))
+	if err != nil {
+		api.l.Error(err)
+		panic(aErr.New(http.StatusInternalServerError, err.Error()))
+	}
+
 	writeRespone(w, body)
 }
 
 // SongVerse
 // @Summary      Get song verses
-// @Description  Получение стихов песни по идентификатору
+// @Description  Получение куплетов песни по идентификатору
 // @Tags         Verses
 // @Produce      json
 // @Param        id    path int true  "Идентификатор песни"
-// @Param        offset  query int false "Номер страницы для пагинации" default(1)
-// @Param        limit query int false "Количество стихов на странице" default(10)
-// @Success      200 {array} models.Verse "Список стихов"
+// @Param        offset  query int false "Отступ для пагинации" default(0)
+// @Param        limit query int false "Максимальное количество записей" default(10)
+// @Success      200 {array} models.Verse "Список куплетов"
 // @Failure      400 {object} appErr.Error "Ошибка запроса"
 // @Failure      404 {object} appErr.Error "Песня не найдена"
 // @Failure      500 {object} appErr.Error "Внутренняя ошибка сервера"
@@ -171,39 +184,31 @@ func (api *api) SongVerse(w http.ResponseWriter, r *http.Request) {
 	writeRespone(w, body)
 }
 
-// ChangeSong
-// @Summary      Change a song
-// @Description  Изменение данных песни
+// DeleteSong
+// @Summary      Delete a song
+// @Description  Удаление песни по идентификатору
 // @Tags         Songs
-// @Accept       json
 // @Produce      json
-// @Param        song body models.SongDTO true "Данные для изменения песни"
-// @Success      200 {object} string "Song changed with id: {id}"
+// @Param        id query int true "Идентификатор песни" example(1)
+// @Success      200 {object} string "Song deleted"
 // @Failure      400 {object} appErr.Error "Ошибка запроса"
 // @Failure      404 {object} appErr.Error "Песня не найдена"
-// @Failure      422 {object} appErr.Error "Невалидные данные"
 // @Failure      500 {object} appErr.Error "Внутренняя ошибка сервера"
-// @Router       /music [patch]
-func (api *api) ChangeSong(w http.ResponseWriter, r *http.Request) {
-	var song models.SongDTO
-	body, err := io.ReadAll(r.Body)
+// @Router       /music [delete]
+func (api *api) DeleteSong(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
 		api.l.Error(err)
 		panic(aErr.New(http.StatusBadRequest, err.Error()))
 	}
-	err = json.Unmarshal(body, &song)
-	if err != nil {
-		api.l.Error(err)
-		panic(aErr.New(http.StatusBadRequest, err.Error()))
-	}
-	newSong, err := api.storage.ChangeSong(context.Background(), &song)
+	err = api.storage.DeleteSong(context.Background(), id)
 	if err != nil {
 		api.l.Error(err)
 		panic(aErr.New(http.StatusInternalServerError, err.Error()))
 	}
 
-	body = []byte(fmt.Sprintf("Song changed with id: %d", newSong.ID))
-
+	body, _ := json.Marshal(fmt.Sprintf("Song deleted - id: %d", id))
 	writeRespone(w, body)
 }
 

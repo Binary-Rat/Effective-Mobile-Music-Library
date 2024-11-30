@@ -44,7 +44,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	storage := postgres.New(pool)
+	storage := postgres.New(pool, logger)
 
 	server := api.New(r, logger, storage, songlib.New())
 

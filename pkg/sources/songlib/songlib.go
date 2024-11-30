@@ -37,6 +37,7 @@ func (c *client) SongWithDetails(ctx context.Context, song *models.Song) error {
 	var sd models.SongDetails
 
 	var host = os.Getenv("SOURCE_HOST")
+	//for making url query
 	query := map[string]string{
 		"group": song.Group,
 		"song":  song.Song,

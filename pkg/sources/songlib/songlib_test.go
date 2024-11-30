@@ -21,13 +21,15 @@ func Test_client_SongWithDetails(t *testing.T) {
 	client := client{
 		client: hc,
 	}
-
-	details := &models.SongDetails{
-		ReleaseDate: time.Now(),
+	details := &struct {
+		ReleaseDate models.CustomTime `json:"releaseDate"`
+		Lyrics      string            `json:"text"`
+		Link        string            `json:"link"`
+	}{
+		ReleaseDate: models.CustomTime(time.Now()),
 		Lyrics:      "lyrics",
 		Link:        "link",
 	}
-
 	body, _ := json.Marshal(details)
 
 	mockResp := &http.Response{
@@ -42,9 +44,11 @@ func Test_client_SongWithDetails(t *testing.T) {
 	}
 	hc.EXPECT().Do(gomock.Any()).Return(mockResp, nil)
 
+	t.Log(mockResp)
+
 	client.SongWithDetails(ctx, song)
 
-	if !song.Details.ReleaseDate.Equal(details.ReleaseDate) {
+	if song.Details.ReleaseDate == (details.ReleaseDate) {
 		t.Errorf("got %v, want %v", song.Details.ReleaseDate, details.ReleaseDate)
 	}
 
