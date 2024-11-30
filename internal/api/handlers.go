@@ -137,7 +137,7 @@ func (api *api) ChangeSong(w http.ResponseWriter, r *http.Request) {
 	newSong, err := api.storage.ChangeSong(context.Background(), &song)
 	if err != nil {
 		api.l.Error(err)
-		panic(aErr.New(http.StatusInternalServerError, err.Error()))
+		panic(aErr.New(http.StatusBadRequest, err.Error()))
 	}
 
 	body, err = json.Marshal(fmt.Sprintf("Song changed with id: %d", newSong.ID))
@@ -157,7 +157,7 @@ func (api *api) ChangeSong(w http.ResponseWriter, r *http.Request) {
 // @Param        id    path int true  "Идентификатор песни"
 // @Param        offset  query int false "Отступ для пагинации" default(0)
 // @Param        limit query int false "Максимальное количество записей" default(10)
-// @Success      200 {array} models.Verse "Список куплетов"
+// @Success      200 {array} string "Список куплетов"
 // @Failure      400 {object} appErr.Error "Ошибка запроса"
 // @Failure      404 {object} appErr.Error "Песня не найдена"
 // @Failure      500 {object} appErr.Error "Внутренняя ошибка сервера"
@@ -205,7 +205,7 @@ func (api *api) DeleteSong(w http.ResponseWriter, r *http.Request) {
 	err = api.storage.DeleteSong(context.Background(), id)
 	if err != nil {
 		api.l.Error(err)
-		panic(aErr.New(http.StatusInternalServerError, err.Error()))
+		panic(aErr.New(http.StatusBadRequest, err.Error()))
 	}
 
 	body, _ := json.Marshal(fmt.Sprintf("Song deleted - id: %d", id))

@@ -87,7 +87,7 @@ func (s *Storage) DeleteSong(ctx context.Context, id int) error {
 		return fmt.Errorf("cannot delete value: %v", err)
 	}
 	if cmdTag.RowsAffected() == 0 {
-		return fmt.Errorf("cannot delete value: %v", err)
+		return fmt.Errorf("there is no value with id: %v", id)
 	}
 	return nil
 }

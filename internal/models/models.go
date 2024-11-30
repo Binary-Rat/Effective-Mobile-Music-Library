@@ -6,18 +6,16 @@ import (
 )
 
 type Song struct {
-	Group   string      `json:"group" example:"group"`
-	Song    string      `json:"song" example:"song"`
+	Group   string      `json:"group" example:"Nirvana"`
+	Song    string      `json:"song" example:"Lithium"`
 	Details SongDetails `json:"details"`
 }
 
 type SongDetails struct {
-	ReleaseDate CustomTime `json:"releaseDate"`
-	Lyrics      string     `json:"text" example:"lyrics"`
-	Link        string     `json:"link" example:"link"`
+	ReleaseDate CustomTime `json:"releaseDate" example:"13.07.1993"`
+	Lyrics      string     `json:"text" example:"I am so happy\ncause today..."`
+	Link        string     `json:"link" example:"https://www.youtube.com/watch?v=Xsp3_a-PMTw"`
 }
-
-type Verse string
 
 type CustomTime time.Time
 

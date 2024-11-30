@@ -323,11 +323,11 @@ const docTemplate = `{
                 },
                 "group": {
                     "type": "string",
-                    "example": "group"
+                    "example": "Nirvana"
                 },
                 "song": {
                     "type": "string",
-                    "example": "song"
+                    "example": "Lithium"
                 }
             }
         },
@@ -338,13 +338,16 @@ const docTemplate = `{
                     "$ref": "#/definitions/models.SongDetails"
                 },
                 "group": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Nirvana"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 1
                 },
                 "song": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Lithium"
                 }
             }
         },
@@ -353,14 +356,15 @@ const docTemplate = `{
             "properties": {
                 "link": {
                     "type": "string",
-                    "example": "link"
+                    "example": "https://www.youtube.com/watch?v=Xsp3_a-PMTw"
                 },
                 "releaseDate": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "13.07.1993"
                 },
                 "text": {
                     "type": "string",
-                    "example": "lyrics"
+                    "example": "I am so happy\ncause today..."
                 }
             }
         }

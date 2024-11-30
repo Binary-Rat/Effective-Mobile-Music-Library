@@ -10,10 +10,10 @@ definitions:
       details:
         $ref: '#/definitions/models.SongDetails'
       group:
-        example: group
+        example: Nirvana
         type: string
       song:
-        example: song
+        example: Lithium
         type: string
     type: object
   models.SongDTO:
@@ -21,21 +21,27 @@ definitions:
       details:
         $ref: '#/definitions/models.SongDetails'
       group:
+        example: Nirvana
         type: string
       id:
+        example: 1
         type: integer
       song:
+        example: Lithium
         type: string
     type: object
   models.SongDetails:
     properties:
       link:
-        example: link
+        example: https://www.youtube.com/watch?v=Xsp3_a-PMTw
         type: string
       releaseDate:
+        example: 13.07.1993
         type: string
       text:
-        example: lyrics
+        example: |-
+          I am so happy
+          cause today...
         type: string
     type: object
 host: localhost:8080
