@@ -15,7 +15,7 @@ WORKDIR /app
 
 COPY --from=build-stage /app/app /app
 COPY --from=build-stage /app/.env /app
-COPY --from=build-stage /app/migrations /app/migrations
+COPY --from=build-stage /app/pkg/clients/postgres/migrations /app/migrations
 
 EXPOSE 8080
 

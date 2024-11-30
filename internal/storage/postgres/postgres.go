@@ -59,8 +59,14 @@ func (s *Storage) Verses(ctx context.Context, id int, offset uint64, limit uint6
 	if err != nil {
 		return nil, fmt.Errorf("cannot scan row: %v", err)
 	}
-	verses := strings.Split(verse, "\n")[offset : limit+offset]
-	return verses, nil
+	verses := strings.Split(verse, "\\n")
+	if int(offset) > len(verses) {
+		return []string{}, nil
+	}
+	if int(offset+limit) > len(verses) {
+		return verses[offset:], nil
+	}
+	return verses[offset : offset+limit], nil
 }
 
 func (s *Storage) DeleteSong(ctx context.Context, id int) error {

@@ -4,6 +4,8 @@ import (
 	appErr "Effective-Mobile-Music-Library/pkg/middleware/app-err"
 	"encoding/json"
 	"net/http"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func ErrorMiddleware(next http.Handler) http.Handler {
@@ -12,6 +14,7 @@ func ErrorMiddleware(next http.Handler) http.Handler {
 			if rec := recover(); rec != nil {
 				appError, ok := rec.(*appErr.Error)
 				if !ok {
+					log.Error(rec)
 					appError = appErr.New(http.StatusInternalServerError, "Internal Server Error")
 				}
 				w.Header().Set("Content-Type", "application/json")

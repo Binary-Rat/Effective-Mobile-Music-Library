@@ -48,7 +48,7 @@ func TestSongs(t *testing.T) {
 		Song:  "Test",
 		Details: models.SongDetails{
 			ReleaseDate: time.Now(),
-			Lyrics:      "Test Test Test\nTest Test Test\n",
+			Lyrics:      "Test Test Test\\nTest Test Test\\n",
 			Link:        "http://test.com",
 		},
 	}
@@ -66,7 +66,7 @@ func TestSongs(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	verses, err := db.Verses(context.Background(), reqSong.ID, 0, 2)
+	verses, err := db.Verses(context.Background(), reqSong.ID, 0, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -77,7 +77,7 @@ func TestSongs(t *testing.T) {
 	}
 
 	t.Log(songAdded)
-	t.Log(verses)
+	t.Log("verses: ", verses[0])
 
 	assert.Equal(t, songAdded[0].Song, song.Song)
 }

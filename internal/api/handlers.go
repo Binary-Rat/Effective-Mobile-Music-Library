@@ -54,16 +54,18 @@ func (api *api) registerHandlers() {
 // @Failure      500 {object} appErr.Error "Внутренняя ошибка сервера"
 // @Router       /music [get]
 func (api *api) Songs(w http.ResponseWriter, r *http.Request) {
-	api.l.Println("Geting songs...")
+	api.l.Debug("Geting songs...")
 	songFilter, offset, limit := parseSongFilterFromURL(r)
 
 	songs, err := api.storage.Songs(context.Background(), songFilter, offset, limit)
 	if err != nil {
+		api.l.Error(err)
 		panic(aErr.New(http.StatusInternalServerError, err.Error()))
 	}
 
 	body, err := json.Marshal(songs)
 	if err != nil {
+		api.l.Error(err)
 		panic(aErr.New(http.StatusInternalServerError, err.Error()))
 	}
 
@@ -87,15 +89,18 @@ func (api *api) AddSong(w http.ResponseWriter, r *http.Request) {
 	var song models.Song
 	err := json.NewDecoder(r.Body).Decode(&song)
 	if err != nil {
+		api.l.Error(err)
 		panic(err)
 	}
 
 	err = api.source.SongWithDetails(context.Background(), &song)
 	if err != nil {
+		api.l.Error(err)
 		panic(aErr.New(http.StatusInternalServerError, err.Error()))
 	}
 	id, err := api.storage.AddSong(context.Background(), song)
 	if err != nil {
+		api.l.Error(err)
 		panic(aErr.New(http.StatusInternalServerError, err.Error()))
 	}
 
@@ -118,10 +123,12 @@ func (api *api) DeleteSong(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
+		api.l.Error(err)
 		panic(aErr.New(http.StatusBadRequest, err.Error()))
 	}
 	err = api.storage.DeleteSong(context.Background(), id)
 	if err != nil {
+		api.l.Error(err)
 		panic(aErr.New(http.StatusInternalServerError, err.Error()))
 	}
 
@@ -146,15 +153,18 @@ func (api *api) SongVerse(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
+		api.l.Error(err)
 		panic(aErr.New(http.StatusBadRequest, err.Error()))
 	}
 	offset, limit := parseOffsetLimit(r)
 	verse, err := api.storage.Verses(context.Background(), id, offset, limit)
 	if err != nil {
+		api.l.Error(err)
 		panic(aErr.New(http.StatusInternalServerError, err.Error()))
 	}
 	body, err := json.Marshal(verse)
 	if err != nil {
+		api.l.Error(err)
 		panic(aErr.New(http.StatusInternalServerError, err.Error()))
 	}
 
@@ -178,14 +188,17 @@ func (api *api) ChangeSong(w http.ResponseWriter, r *http.Request) {
 	var song models.SongDTO
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
+		api.l.Error(err)
 		panic(aErr.New(http.StatusBadRequest, err.Error()))
 	}
 	err = json.Unmarshal(body, &song)
 	if err != nil {
+		api.l.Error(err)
 		panic(aErr.New(http.StatusBadRequest, err.Error()))
 	}
 	newSong, err := api.storage.ChangeSong(context.Background(), &song)
 	if err != nil {
+		api.l.Error(err)
 		panic(aErr.New(http.StatusInternalServerError, err.Error()))
 	}
 

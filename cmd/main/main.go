@@ -7,6 +7,7 @@ import (
 	"Effective-Mobile-Music-Library/pkg/logger"
 	"Effective-Mobile-Music-Library/pkg/sources/songlib"
 	"context"
+	"fmt"
 	"os"
 
 	log "github.com/sirupsen/logrus"
@@ -28,7 +29,6 @@ func init() {
 	if err := godotenv.Load(); err != nil {
 		log.Print("No .env file found")
 	}
-
 }
 
 func main() {
@@ -36,9 +36,9 @@ func main() {
 	r := mux.NewRouter()
 
 	logger.Info("Connecting to database")
-	connectionString, exists := os.LookupEnv("DB_URL")
-	if !exists {
-		log.Fatal("environment variable DB_URL is not set")
+	connectionString := mustConnString()
+	if connectionString == "" {
+		log.Fatal("Connection string is empty")
 	}
 	pool, err := p.NewClient(context.Background(), connectionString)
 	if err != nil {
@@ -48,6 +48,17 @@ func main() {
 
 	server := api.New(r, logger, storage, songlib.New())
 
-	logger.Infof("Server is running on port %s", os.Getenv("PORT"))
-	log.Fatal(server.Start())
+	port := os.Getenv("PORT")
+	logger.Infof("Server is running on port %s", port)
+	log.Fatal(server.Start(port))
+}
+
+func mustConnString() string {
+
+	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_NAME"))
 }

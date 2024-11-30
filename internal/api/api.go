@@ -4,7 +4,6 @@ import (
 	"Effective-Mobile-Music-Library/internal/storage"
 	"Effective-Mobile-Music-Library/pkg/sources"
 	"net/http"
-	"os"
 
 	log "github.com/sirupsen/logrus"
 
@@ -27,7 +26,7 @@ func New(router *mux.Router, logger *log.Logger, storage storage.Interface, sour
 	}
 }
 
-func (a *api) Start() error {
+func (a *api) Start(port string) error {
 	a.registerHandlers()
-	return http.ListenAndServe(os.Getenv("PORT"), a.r)
+	return http.ListenAndServe(port, a.r)
 }

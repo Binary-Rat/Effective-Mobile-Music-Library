@@ -10,6 +10,8 @@ services:
       - "5432:5432"
   web:
     build: .
+    environment:
+      DB_HOST: postgres
     ports:
       - "8080:8080"
     depends_on:
